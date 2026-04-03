@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "openenv-my_env"
 version = "0.1.0"
-description = "My Env environment for OpenEnv"
+description = "Operational risk triage environment for OpenEnv"
 requires-python = ">=3.10"
 dependencies = [
     # Core OpenEnv runtime (provides FastAPI server + HTTP client types)
@@ -26,6 +26,7 @@ dependencies = [
     # "gymnasium>=0.29.0",
     # "openspiel>=1.0.0",
     # "smolagents>=1.22.0,<2",
+    "openai>=2.0.0",
 ]
 
 [project.optional-dependencies]
