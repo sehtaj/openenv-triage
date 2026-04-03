@@ -73,78 +73,78 @@
 
 ## Stage 1
 ### 1.1 Repo Conversion Plan
-- [ ] Replace the starter echo-environment assumptions in `README.md` with OOD decision-making language.
-- [ ] Replace the starter action and observation schema in `models.py`.
-- [ ] Replace the starter transition logic in `server/my_env_environment.py`.
-- [ ] Confirm whether `client.py` remains the package client or is only kept for OpenEnv compatibility.
-- [ ] Add a root-level `inference.py` file and reserve that exact filename for the baseline submission script.
-- [ ] Decide whether new helper modules are needed for task generation, grading, prompts, and fixtures.
+- [x] Replace the starter echo-environment assumptions in `README.md` with OOD decision-making language.
+- [x] Replace the starter action and observation schema in `models.py`.
+- [x] Replace the starter transition logic in `server/my_env_environment.py`.
+- [x] Confirm whether `client.py` remains the package client or is only kept for OpenEnv compatibility.
+- [x] Add a root-level `inference.py` file and reserve that exact filename for the baseline submission script.
+- [x] Decide whether new helper modules are needed for task generation, grading, prompts, and fixtures.
 
 ### 1.2 File Ownership Map
-- [ ] Mark `models.py` as the source of truth for typed action and observation models.
-- [ ] Mark `server/my_env_environment.py` as the source of truth for environment state, reset, and step behavior.
-- [ ] Mark `server/app.py` as the source of truth for OpenEnv server wiring.
-- [ ] Mark `openenv.yaml` as the source of truth for runtime metadata and entrypoint configuration.
-- [ ] Mark `server/Dockerfile` as the source of truth for container build and launch.
-- [ ] Mark `inference.py` as the source of truth for the baseline agent runner.
+- [x] Mark `models.py` as the source of truth for typed action and observation models.
+- [x] Mark `server/my_env_environment.py` as the source of truth for environment state, reset, and step behavior.
+- [x] Mark `server/app.py` as the source of truth for OpenEnv server wiring.
+- [x] Mark `openenv.yaml` as the source of truth for runtime metadata and entrypoint configuration.
+- [x] Mark `server/Dockerfile` as the source of truth for container build and launch.
+- [x] Mark `inference.py` as the source of truth for the baseline agent runner.
 
 ## Stage 2
 ### 2.1 Task Design
-- [ ] Define the easy task with strong in-distribution signals and low ambiguity.
-- [ ] Define the medium task with moderate distribution shift, missing fields, and mixed evidence.
-- [ ] Define the hard task with strong OOD behavior, adversarial or conflicting features, and higher review pressure.
+- [x] Define the easy task with strong in-distribution signals and low ambiguity.
+- [x] Define the medium task with moderate distribution shift, missing fields, and mixed evidence.
+- [x] Define the hard task with strong OOD behavior, adversarial or conflicting features, and higher review pressure.
 - [ ] Ensure all three tasks use the same action schema and grading API.
-- [ ] Ensure all three tasks feel like operational decision queues rather than unrelated mini-games.
-- [ ] Ensure each task has a clear narrative grounded in fraud, anomaly, or moderation workflows.
+- [x] Ensure all three tasks feel like operational decision queues rather than unrelated mini-games.
+- [x] Ensure each task has a clear narrative grounded in fraud, anomaly, or moderation workflows.
 - [ ] Verify OpenEnv can enumerate and run all tasks programmatically
 
 ### 2.2 Case Schema Design
-- [ ] Define the full case record structure for account, transaction, content, or event-level evidence.
-- [ ] Define which numeric features are visible to the agent.
-- [ ] Define which categorical features are visible to the agent.
-- [ ] Define which free-text rationale or notes are visible to the agent.
-- [ ] Define how task difficulty changes which fields are noisy, shifted, missing, or misleading.
-- [ ] Define hidden ground-truth labels, hidden OOD tags, and hidden business cost fields for grading.
+- [x] Define the full case record structure for account, transaction, content, or event-level evidence.
+- [x] Define which numeric features are visible to the agent.
+- [x] Define which categorical features are visible to the agent.
+- [x] Define which free-text rationale or notes are visible to the agent.
+- [x] Define how task difficulty changes which fields are noisy, shifted, missing, or misleading.
+- [x] Define hidden ground-truth labels, hidden OOD tags, and hidden business cost fields for grading.
 
 ### 2.3 Episode Structure
-- [ ] Define the episode length for each task.
-- [ ] Define whether all tasks use the same number of cases or task-specific counts.
-- [ ] Define how `reset()` selects the task and initial episode content.
-- [ ] Define whether the environment supports explicit task selection through reset metadata or config.
-- [ ] Define the terminal condition for the episode.
-- [ ] Define how step count, processed cases, and remaining budget are tracked in state.
+- [x] Define the episode length for each task.
+- [x] Define whether all tasks use the same number of cases or task-specific counts.
+- [x] Define how `reset()` selects the task and initial episode content.
+- [x] Define whether the environment supports explicit task selection through reset metadata or config.
+- [x] Define the terminal condition for the episode.
+- [x] Define how step count, processed cases, and remaining budget are tracked in state.
 
 ## Stage 3
 ### 3.1 Typed Model Redesign
-- [ ] Replace `MyAction` with a typed action model that only permits valid decision actions.
-- [ ] Add typed action fields for decision rationale, optional confidence, and optional review note if needed.
-- [ ] Replace `MyObservation` with a typed observation model reflecting the current case, queue status, and recent feedback.
-- [ ] Add typed observation fields for task name, difficulty, remaining cases, review budget, and cumulative metrics.
-- [ ] Ensure all model fields have explicit types and clear field descriptions.
-- [ ] Ensure no required field depends on ambiguous free-form runtime inference.
+- [x] Replace `MyAction` with a typed action model that only permits valid decision actions.
+- [x] Add typed action fields for decision rationale, optional confidence, and optional review note if needed.
+- [x] Replace `MyObservation` with a typed observation model reflecting the current case, queue status, and recent feedback.
+- [x] Add typed observation fields for task name, difficulty, remaining cases, review budget, and cumulative metrics.
+- [x] Ensure all model fields have explicit types and clear field descriptions.
+- [x] Ensure no required field depends on ambiguous free-form runtime inference.
 
 ### 3.2 State Design
-- [ ] Define the environment state object content beyond `episode_id` and `step_count`.
-- [ ] Decide where the current task definition is stored.
-- [ ] Decide where pending cases are stored.
-- [ ] Decide where cumulative reward and score components are stored.
-- [ ] Decide where review usage and error counts are stored.
-- [ ] Decide which state fields are exposed through the OpenEnv `state` property versus kept internal.
+- [x] Define the environment state object content beyond `episode_id` and `step_count`.
+- [x] Decide where the current task definition is stored.
+- [x] Decide where pending cases are stored.
+- [x] Decide where cumulative reward and score components are stored.
+- [x] Decide where review usage and error counts are stored.
+- [x] Decide which state fields are exposed through the OpenEnv `state` property versus kept internal.
 
 ### 3.3 Schema Stability
-- [ ] Ensure the action schema remains stable across easy, medium, and hard tasks.
-- [ ] Ensure the observation schema remains stable across all tasks and steps.
+- [x] Ensure the action schema remains stable across easy, medium, and hard tasks.
+- [x] Ensure the observation schema remains stable across all tasks and steps.
 - [ ] Ensure all metadata keys are deterministic and documented.
 - [ ] Ensure the schema supports OpenEnv serialization without custom hacks.
 - [ ] Ensure the schema remains lightweight enough for sub-20-minute evaluation runs.
 
 ## Stage 4
 ### 4.1 Deterministic Task Bank
-- [ ] Create a deterministic task bank for easy, medium, and hard episodes.
+- [x] Create a deterministic task bank for easy, medium, and hard episodes.
 - [ ] Assign a fixed seed strategy so the same task definition always produces the same cases.
 - [ ] Create realistic feature distributions for each domain scenario.
-- [ ] Create explicit OOD shift patterns for medium and hard tasks.
-- [ ] Create adversarial or borderline examples that make `review` strategically necessary.
+- [x] Create explicit OOD shift patterns for medium and hard tasks.
+- [x] Create adversarial or borderline examples that make `review` strategically necessary.
 - [ ] Create enough case diversity to prevent trivial one-rule policies from winning.
 
 ### 4.2 Data Quality Controls
@@ -164,39 +164,39 @@
 
 ## Stage 5
 ### 5.1 Environment Reset Logic
-- [ ] Redesign `reset()` in `server/my_env_environment.py` around task initialization instead of echo behavior.
-- [ ] Ensure `reset()` creates a fresh episode id.
-- [ ] Ensure `reset()` resets step count, cumulative reward, score counters, and review budget.
-- [ ] Ensure `reset()` returns the first actionable observation immediately.
-- [ ] Ensure `reset()` works deterministically for a given task selection and seed.
+- [x] Redesign `reset()` in `server/my_env_environment.py` around task initialization instead of echo behavior.
+- [x] Ensure `reset()` creates a fresh episode id.
+- [x] Ensure `reset()` resets step count, cumulative reward, score counters, and review budget.
+- [x] Ensure `reset()` returns the first actionable observation immediately.
+- [x] Ensure `reset()` works deterministically for a given task selection and seed.
 - [ ] Ensure the deployed Hugging Face Space responds successfully to `reset()`.
 
 ### 5.2 Environment Step Logic
-- [ ] Redesign `step()` to consume one case decision per call.
-- [ ] Validate the action before mutating state.
-- [ ] Apply business-cost logic for `accept`.
-- [ ] Apply business-cost logic for `reject`.
-- [ ] Apply business-cost logic for `review`.
-- [ ] Advance to the next case after scoring the current action.
-- [ ] Mark `done` only when the episode is complete.
-- [ ] Return updated observation, reward, done flag, and deterministic metadata on every step.
+- [x] Redesign `step()` to consume one case decision per call.
+- [x] Validate the action before mutating state.
+- [x] Apply business-cost logic for `accept`.
+- [x] Apply business-cost logic for `reject`.
+- [x] Apply business-cost logic for `review`.
+- [x] Advance to the next case after scoring the current action.
+- [x] Mark `done` only when the episode is complete.
+- [x] Return updated observation, reward, done flag, and deterministic metadata on every step.
 - [ ] Ensure invalid or malformed actions are handled deterministically with a fallback or penalty
 
 ### 5.3 Review Workflow Realism
 - [ ] Define exactly what `review` means operationally for each domain scenario.
-- [ ] Decide whether `review` resolves the case immediately or defers with a bounded penalty.
-- [ ] Apply a measurable cost to overusing review.
+- [x] Decide whether `review` resolves the case immediately or defers with a bounded penalty.
+- [x] Apply a measurable cost to overusing review.
 - [ ] Prevent `review` from becoming a dominant always-safe policy.
-- [ ] Ensure some borderline cases are best handled by `review`.
-- [ ] Ensure some clearly labeled cases are worse if sent to `review`.
+- [x] Ensure some borderline cases are best handled by `review`.
+- [x] Ensure some clearly labeled cases are worse if sent to `review`.
 
 ## Stage 6
 ### 6.1 Reward Function Design
-- [ ] Define per-step reward contributions for correct `accept`, correct `reject`, and justified `review`.
-- [ ] Define per-step penalties for costly false accepts.
-- [ ] Define per-step penalties for costly false rejects.
-- [ ] Define per-step penalties for wasteful review usage.
-- [ ] Ensure the reward function is dense enough to guide agent behavior during the full episode.
+- [x] Define per-step reward contributions for correct `accept`, correct `reject`, and justified `review`.
+- [x] Define per-step penalties for costly false accepts.
+- [x] Define per-step penalties for costly false rejects.
+- [x] Define per-step penalties for wasteful review usage.
+- [x] Ensure the reward function is dense enough to guide agent behavior during the full episode.
 - [ ] Ensure the reward function aligns with the final grader rather than rewarding contradictory behavior.
 
 ### 6.2 Score Normalization
@@ -235,49 +235,49 @@
 
 ## Stage 8
 ### 8.1 OpenEnv Client Compatibility
-- [ ] Update `client.py` to parse the new observation schema correctly.
-- [ ] Ensure the client continues to support `reset()`, `step()`, and `state()` operations.
-- [ ] Ensure state parsing reflects the new episode counters and identifiers.
-- [ ] Ensure package exports remain valid after model and environment renames.
-- [ ] Ensure no starter echo-environment assumptions remain in client-side parsing.
+- [x] Update `client.py` to parse the new observation schema correctly.
+- [x] Ensure the client continues to support `reset()`, `step()`, and `state()` operations.
+- [x] Ensure state parsing reflects the new episode counters and identifiers.
+- [x] Ensure package exports remain valid after model and environment renames.
+- [x] Ensure no starter echo-environment assumptions remain in client-side parsing.
 
 ### 8.2 Baseline Agent Contract
-- [ ] Create `inference.py` at the repository root.
-- [ ] Ensure `inference.py` uses the OpenAI client for inference.
-- [ ] Ensure `inference.py` reads `API_BASE_URL` from the environment.
-- [ ] Ensure `inference.py` reads `MODEL_NAME` from the environment.
-- [ ] Ensure `inference.py` reads `HF_TOKEN` from the environment if deployment or gated assets require it.
+- [x] Create `inference.py` at the repository root.
+- [x] Ensure `inference.py` uses the OpenAI client for inference.
+- [x] Ensure `inference.py` reads `API_BASE_URL` from the environment.
+- [x] Ensure `inference.py` reads `MODEL_NAME` from the environment.
+- [x] Ensure `inference.py` reads `HF_TOKEN` from the environment if deployment or gated assets require it.
 - [ ] Ensure `inference.py` can connect to the running environment and complete an episode end-to-end.
 
 ### 8.3 Baseline Agent Behavior
-- [ ] Define the system prompt for operational decision-making behavior.
-- [ ] Define the user prompt format from the current observation.
-- [ ] Define strict output parsing so the model only returns valid actions.
-- [ ] Add retry or fallback behavior for malformed model responses.
-- [ ] Log per-step decisions, rewards, and final score for debugging.
+- [x] Define the system prompt for operational decision-making behavior.
+- [x] Define the user prompt format from the current observation.
+- [x] Define strict output parsing so the model only returns valid actions.
+- [x] Add retry or fallback behavior for malformed model responses.
+- [x] Log per-step decisions, rewards, and final score for debugging.
 - [ ] Ensure the baseline finishes within the runtime budget.
 
 ## Stage 9
 ### 9.1 OpenEnv Server Wiring
-- [ ] Update `server/app.py` so the app wires the final environment class and final models.
-- [ ] Ensure the app still exposes the expected OpenEnv endpoints.
+- [x] Update `server/app.py` so the app wires the final environment class and final models.
+- [x] Ensure the app still exposes the expected OpenEnv endpoints.
 - [ ] Ensure the app works with local development and Docker execution.
 - [ ] Ensure session behavior is correct for the intended concurrency model.
-- [ ] Ensure `env_name` and runtime labels match the final project identity.
+- [x] Ensure `env_name` and runtime labels match the final project identity.
 
 ### 9.2 Manifest and Packaging
-- [ ] Update `openenv.yaml` with the final valid spec fields.
-- [ ] Verify the `app` target in `openenv.yaml` matches the deployed server entrypoint.
-- [ ] Verify the port in `openenv.yaml` matches the runtime server port.
-- [ ] Verify `pyproject.toml` metadata matches the final environment purpose.
+- [x] Update `openenv.yaml` with the final valid spec fields.
+- [x] Verify the `app` target in `openenv.yaml` matches the deployed server entrypoint.
+- [x] Verify the port in `openenv.yaml` matches the runtime server port.
+- [x] Verify `pyproject.toml` metadata matches the final environment purpose.
 - [ ] Verify package imports work both from source and inside the container.
 
 ### 9.3 Documentation
-- [ ] Rewrite `README.md` around the OOD decision-making environment.
-- [ ] Document the easy, medium, and hard tasks in `README.md`.
-- [ ] Document the action semantics for `accept`, `reject`, and `review`.
+- [x] Rewrite `README.md` around the OOD decision-making environment.
+- [x] Document the easy, medium, and hard tasks in `README.md`.
+- [x] Document the action semantics for `accept`, `reject`, and `review`.
 - [ ] Document the reward and grading philosophy at a high level.
-- [ ] Document required environment variables including `API_BASE_URL`, `MODEL_NAME`, and `HF_TOKEN`.
+- [x] Document required environment variables including `API_BASE_URL`, `MODEL_NAME`, and `HF_TOKEN`.
 - [ ] Document local run, Docker run, and validation commands.
 
 ## Stage 10
@@ -328,23 +328,23 @@
 - [ ] Ensure no TODO markers remain in submission-critical files.
 
 ## Special Section: OpenEnv Spec Compliance
-- [ ] Confirm the environment exposes typed action and observation models.
-- [ ] Confirm `reset()` returns a valid observation for a fresh episode.
-- [ ] Confirm `step()` accepts the typed action model and returns a valid step result.
-- [ ] Confirm `state` returns a valid OpenEnv state object.
+- [x] Confirm the environment exposes typed action and observation models.
+- [x] Confirm `reset()` returns a valid observation for a fresh episode.
+- [x] Confirm `step()` accepts the typed action model and returns a valid step result.
+- [x] Confirm `state` returns a valid OpenEnv state object.
 - [ ] Confirm schema serialization works for action, observation, and state models.
-- [ ] Confirm `openenv.yaml` is valid and points to the correct app entrypoint.
+- [x] Confirm `openenv.yaml` is valid and points to the correct app entrypoint.
 - [ ] Confirm the project passes OpenEnv validation without manual overrides.
 
 ## Special Section: inference.py Compliance
-- [ ] Confirm the file is named exactly `inference.py`.
-- [ ] Confirm `inference.py` uses the OpenAI client.
-- [ ] Confirm `inference.py` reads `API_BASE_URL`.
-- [ ] Confirm `inference.py` reads `MODEL_NAME`.
-- [ ] Confirm `inference.py` reads `HF_TOKEN`.
+- [x] Confirm the file is named exactly `inference.py`.
+- [x] Confirm `inference.py` uses the OpenAI client.
+- [x] Confirm `inference.py` reads `API_BASE_URL`.
+- [x] Confirm `inference.py` reads `MODEL_NAME`.
+- [x] Confirm `inference.py` reads `HF_TOKEN`.
 - [ ] Confirm `inference.py` can run against the local server.
 - [ ] Confirm `inference.py` can run against the deployed Hugging Face Space.
-- [ ] Confirm `inference.py` produces valid `accept`, `reject`, or `review` actions only.
+- [x] Confirm `inference.py` produces valid `accept`, `reject`, or `review` actions only.
 
 ## Special Section: Grading Correctness
 - [ ] Confirm graders are deterministic.
