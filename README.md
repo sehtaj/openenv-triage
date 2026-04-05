@@ -44,7 +44,8 @@ uvicorn server.app:app --reload --host 0.0.0.0 --port 8000
 ### Interact with the environment
 
 ```python
-from my_env import RiskTriageEnv, TriageAction
+from client import RiskTriageEnv
+from models import TriageAction
 
 client = RiskTriageEnv(base_url="http://localhost:8000").sync()
 
@@ -72,6 +73,13 @@ HF_TOKEN=your_token \
 OPENAI_API_KEY=your_api_key \
 .venv/bin/python inference.py --env-url http://localhost:8000 --task easy
 ```
+
+### Required environment variables
+
+- `API_BASE_URL`: model endpoint base URL
+- `MODEL_NAME`: model identifier used by `inference.py`
+- `HF_TOKEN`: token passed through for gated deployment scenarios
+- `OPENAI_API_KEY`: optional API key used by the OpenAI client if required by the target endpoint
 
 ## Environment Contract
 
@@ -109,6 +117,16 @@ The visible case includes:
 
 All tasks share the same API and differ only in ambiguity, missing evidence, and OOD behavior.
 
+## Review Semantics
+
+`review` always means bounded human escalation, but the operational interpretation differs by domain:
+
+- `payment`: send the transaction or account event to a manual fraud analyst queue
+- `content`: send the content or account action to a human moderation queue
+- `system`: send the anomaly or operational event to a human investigation queue
+
+In all three domains, `review` resolves the current case immediately in the environment, consumes review budget, and carries an explicit cost.
+
 ## Scoring
 
 The environment uses two related score views:
@@ -135,6 +153,15 @@ This means:
 
 Aggregate evaluation across `easy`, `medium`, and `hard` is the arithmetic mean of the three normalized task scores.
 
+## Reward Philosophy
+
+- false accepts are penalized most heavily because they allow harmful events through
+- false rejects are penalized materially but less than false accepts
+- review has a small explicit cost and is only optimal on genuinely ambiguous cases
+- step rewards are raw business-value signals and final episode scores are normalized for evaluation
+
+This means the interaction reward and the final grader are aligned: the normalized episode score is derived directly from accumulated raw business value rather than a separate contradictory objective.
+
 The baseline script prints only these line types:
 
 ```text
@@ -148,10 +175,7 @@ The baseline script prints only these line types:
 ```text
 my_env/
 ├── AGENTS.md
-├── DOCS/
-│   ├── AGENTS.md
-│   ├── PROGRESS.md
-│   └── RULES.md
+├── RULES.md
 ├── __init__.py
 ├── client.py
 ├── inference.py
@@ -159,8 +183,9 @@ my_env/
 ├── openenv.yaml
 ├── pyproject.toml
 ├── README.md
-├── rules.md
+├── PROGRESS.md
 ├── tests/
+│   ├── test_environment.py
 │   └── test_grader.py
 ├── validate-submission.sh
 └── server/
@@ -194,3 +219,15 @@ Run the local submission checks with:
 ```bash
 ./validate-submission.sh
 ```
+
+Run the local OpenEnv validator directly with:
+
+```bash
+openenv validate
+```
+
+## Determinism
+
+- deterministic task seeds are centralized in [server/task_bank.py](/Users/sehtaj/githubRepos/my_env/server/task_bank.py)
+- the task bank is bundled directly in the repository
+- the environment does not download task data or fixtures at runtime

@@ -6,9 +6,9 @@ This file defines how any AI agent (Codex/GPT) must operate in this repository.
 
 # 1. SOURCE OF TRUTH
 
-- The file `rules.md` is the PRIMARY execution contract.
-- You MUST read and follow `rules.md` before making any changes.
-- If there is any conflict, `rules.md` takes priority.
+- The file `RULES.md` is the PRIMARY execution contract.
+- You MUST read and follow `RULES.md` before making any changes.
+- If there is any conflict, `RULES.md` takes priority.
 
 ---
 
@@ -16,7 +16,7 @@ This file defines how any AI agent (Codex/GPT) must operate in this repository.
 
 For ANY task:
 
-1. Read `rules.md`
+1. Read `RULES.md`
 2. Understand constraints
 3. Make a plan BEFORE coding
 4. Implement changes
@@ -32,7 +32,7 @@ A task is ONLY complete if:
 - `openenv validate` passes
 - Logging format is EXACT
 - Determinism is preserved
-- No rules in `rules.md` are violated
+- No rules in `RULES.md` are violated
 
 ---
 

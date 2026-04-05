@@ -73,7 +73,7 @@
 
 ## Stage 1
 ### 1.1 Repo Conversion Plan
-- [x] Replace the starter echo-environment assumptions in `README.md` with OOD decision-making language.
+- [x] Replace the starter-template assumptions in `README.md` with OOD decision-making language.
 - [x] Replace the starter action and observation schema in `models.py`.
 - [x] Replace the starter transition logic in `server/my_env_environment.py`.
 - [x] Confirm whether `client.py` remains the package client or is only kept for OpenEnv compatibility.
@@ -136,7 +136,7 @@
 - [x] Ensure the observation schema remains stable across all tasks and steps.
 - [x] Ensure all metadata keys are deterministic and documented.
 - [x] Ensure the schema supports OpenEnv serialization without custom hacks.
-- [ ] Ensure the schema remains lightweight enough for sub-20-minute evaluation runs.
+- [x] Ensure the schema remains lightweight enough for sub-20-minute evaluation runs.
 
 ## Stage 4
 ### 4.1 Deterministic Task Bank
@@ -160,11 +160,11 @@
 - [x] Calibrate the medium task so robust reasoning and review usage clearly outperform naive thresholds.
 - [x] Calibrate the hard task so OOD awareness matters and overconfident accept/reject behavior is punished.
 - [x] Verify task difficulty increases in a visible and defensible way from easy to hard.
-- [ ] Verify the hard task is still tractable within hackathon runtime limits.
+- [x] Verify the hard task is still tractable within hackathon runtime limits.
 
 ## Stage 5
 ### 5.1 Environment Reset Logic
-- [x] Redesign `reset()` in `server/my_env_environment.py` around task initialization instead of echo behavior.
+- [x] Redesign `reset()` in `server/my_env_environment.py` around task initialization instead of starter-template behavior.
 - [x] Ensure `reset()` creates a fresh episode id.
 - [x] Ensure `reset()` resets step count, cumulative reward, score counters, and review budget.
 - [x] Ensure `reset()` returns the first actionable observation immediately.
@@ -180,13 +180,13 @@
 - [x] Advance to the next case after scoring the current action.
 - [x] Mark `done` only when the episode is complete.
 - [x] Return updated observation, reward, done flag, and deterministic metadata on every step.
-- [ ] Ensure invalid or malformed actions are handled deterministically with a fallback or penalty
+- [x] Ensure invalid or malformed actions are handled deterministically with a fallback or penalty
 
 ### 5.3 Review Workflow Realism
-- [ ] Define exactly what `review` means operationally for each domain scenario.
+- [x] Define exactly what `review` means operationally for each domain scenario.
 - [x] Decide whether `review` resolves the case immediately or defers with a bounded penalty.
 - [x] Apply a measurable cost to overusing review.
-- [ ] Prevent `review` from becoming a dominant always-safe policy.
+- [x] Prevent `review` from becoming a dominant always-safe policy.
 - [x] Ensure some borderline cases are best handled by `review`.
 - [x] Ensure some clearly labeled cases are worse if sent to `review`.
 
@@ -210,7 +210,7 @@
 - [x] Verify an always-accept policy scores poorly on at least one task.
 - [x] Verify an always-reject policy scores poorly on at least one task.
 - [x] Verify an always-review policy scores poorly due to explicit review cost or budget pressure.
-- [ ] Verify the optimal policy requires reading task evidence and reacting to OOD signals.
+- [x] Verify the optimal policy requires reading task evidence and reacting to OOD signals.
 
 ## Stage 7
 ### 7.1 Deterministic Grader Implementation
@@ -239,7 +239,7 @@
 - [x] Ensure the client continues to support `reset()`, `step()`, and `state()` operations.
 - [x] Ensure state parsing reflects the new episode counters and identifiers.
 - [x] Ensure package exports remain valid after model and environment renames.
-- [x] Ensure no starter echo-environment assumptions remain in client-side parsing.
+- [x] Ensure no starter-template assumptions remain in client-side parsing.
 
 ### 8.2 Baseline Agent Contract
 - [x] Create `inference.py` at the repository root.
@@ -255,14 +255,14 @@
 - [x] Define strict output parsing so the model only returns valid actions.
 - [x] Add retry or fallback behavior for malformed model responses.
 - [x] Log per-step decisions, rewards, and final score for debugging.
-- [ ] Ensure the baseline finishes within the runtime budget.
+- [x] Ensure the baseline finishes within the runtime budget.
 
 ## Stage 9
 ### 9.1 OpenEnv Server Wiring
 - [x] Update `server/app.py` so the app wires the final environment class and final models.
 - [x] Ensure the app still exposes the expected OpenEnv endpoints.
 - [ ] Ensure the app works with local development and Docker execution.
-- [ ] Ensure session behavior is correct for the intended concurrency model.
+- [x] Ensure session behavior is correct for the intended concurrency model.
 - [x] Ensure `env_name` and runtime labels match the final project identity.
 
 ### 9.2 Manifest and Packaging
@@ -276,9 +276,9 @@
 - [x] Rewrite `README.md` around the OOD decision-making environment.
 - [x] Document the easy, medium, and hard tasks in `README.md`.
 - [x] Document the action semantics for `accept`, `reject`, and `review`.
-- [ ] Document the reward and grading philosophy at a high level.
+- [x] Document the reward and grading philosophy at a high level.
 - [x] Document required environment variables including `API_BASE_URL`, `MODEL_NAME`, and `HF_TOKEN`.
-- [ ] Document local run, Docker run, and validation commands.
+- [x] Document local run, Docker run, and validation commands.
 
 ## Stage 10
 ### 10.1 Docker Build Path
@@ -289,27 +289,27 @@
 - [ ] Ensure the container image contains `inference.py` if evaluation expects it in the project root.
 
 ### 10.2 Runtime Budget Validation
-- [ ] Measure one full baseline run locally.
+- [x] Measure one full baseline run locally.
 - [ ] Measure one full baseline run inside Docker.
-- [ ] Verify the full evaluation path remains under 20 minutes on a 2 vCPU and 8 GB RAM budget.
-- [ ] Reduce task size, prompt size, or model round-trips if runtime exceeds the budget.
-- [ ] Re-run timing after every major change to task count or prompt format.
+- [x] Verify the full evaluation path remains under 20 minutes on a 2 vCPU and 8 GB RAM budget.
+- [x] Reduce task size, prompt size, or model round-trips if runtime exceeds the budget.
+- [x] Re-run timing after every major change to task count or prompt format.
 
 ### 10.3 Resource Stability
-- [ ] Verify memory usage remains stable across repeated resets.
-- [ ] Verify no task generation path requires internet access at runtime.
-- [ ] Verify deterministic fixtures are bundled with the repo if external downloads are not allowed.
-- [ ] Verify there are no hidden heavyweight dependencies that slow cold start.
-- [ ] Ensure no runtime dependency on external APIs or downloads (except LLM calls)
+- [x] Verify memory usage remains stable across repeated resets.
+- [x] Verify no task generation path requires internet access at runtime.
+- [x] Verify deterministic fixtures are bundled with the repo if external downloads are not allowed.
+- [x] Verify there are no hidden heavyweight dependencies that slow cold start.
+- [x] Ensure no runtime dependency on external APIs or downloads (except LLM calls)
 
 ## Stage 11
 ### 11.1 Local Validation
-- [ ] Run unit tests for models, environment logic, and grader behavior.
+- [x] Run unit tests for models, environment logic, and grader behavior.
 - [x] Run integration tests for reset-step-state sequences.
 - [x] Run a baseline episode through `inference.py`.
 - [ ] Run Docker build and container smoke tests.
 - [x] Run `openenv` validation locally and fix all reported issues.
-- [ ] Re-run validation after every manifest, schema, or Docker change.
+- [x] Re-run validation after every manifest, schema, or Docker change.
 - [x] Verify baseline produces reproducible scores across multiple runs
 
 ### 11.2 Hugging Face Space Validation
@@ -317,24 +317,24 @@
 - [ ] Verify the Space starts successfully with the Docker configuration.
 - [ ] Verify the Space responds to `reset()`.
 - [ ] Verify the Space supports a full episode through the OpenEnv API.
-- [ ] Verify any required tokens or secrets are mapped to the expected environment variables.
-- [ ] Verify README front matter and app metadata do not conflict with the deployment target.
+- [x] Verify any required tokens or secrets are mapped to the expected environment variables.
+- [x] Verify README front matter and app metadata do not conflict with the deployment target.
 
 ### 11.3 Final Quality Pass
-- [ ] Remove all echo-environment references from code, docs, and metadata.
-- [ ] Remove dead starter logic and unused dependencies.
-- [ ] Ensure logs are useful for debugging but not excessively verbose.
-- [ ] Ensure deterministic seeds are centralized and documented.
-- [ ] Ensure no TODO markers remain in submission-critical files.
+- [x] Remove all starter-environment references from code, docs, and metadata.
+- [x] Remove dead starter logic and unused dependencies.
+- [x] Ensure logs are useful for debugging but not excessively verbose.
+- [x] Ensure deterministic seeds are centralized and documented.
+- [x] Ensure no TODO markers remain in submission-critical files.
 
 ## Special Section: OpenEnv Spec Compliance
 - [x] Confirm the environment exposes typed action and observation models.
 - [x] Confirm `reset()` returns a valid observation for a fresh episode.
 - [x] Confirm `step()` accepts the typed action model and returns a valid step result.
 - [x] Confirm `state` returns a valid OpenEnv state object.
-- [ ] Confirm schema serialization works for action, observation, and state models.
+- [x] Confirm schema serialization works for action, observation, and state models.
 - [x] Confirm `openenv.yaml` is valid and points to the correct app entrypoint.
-- [ ] Confirm the project passes OpenEnv validation without manual overrides.
+- [x] Confirm the project passes OpenEnv validation without manual overrides.
 
 ## Special Section: inference.py Compliance
 - [x] Confirm the file is named exactly `inference.py`.
@@ -352,31 +352,31 @@
 - [x] Confirm graders treat easy, medium, and hard tasks consistently.
 - [x] Confirm graders penalize false accepts, false rejects, and unnecessary reviews appropriately.
 - [x] Confirm graders reward correct high-confidence decisions and justified reviews appropriately.
-- [ ] Confirm shaped rewards shown during interaction do not contradict final grading.
-- [ ] Confirm golden tests lock expected scores for representative episodes.
+- [x] Confirm shaped rewards shown during interaction do not contradict final grading.
+- [x] Confirm golden tests lock expected scores for representative episodes.
 
 ## Special Section: Deployment Validation
 - [ ] Confirm the Dockerfile builds successfully from a clean environment.
 - [ ] Confirm the Docker container starts and serves the OpenEnv app.
 - [ ] Confirm the deployed Hugging Face Space exposes working API endpoints.
 - [ ] Confirm the deployed Hugging Face Space responds to `reset()`.
-- [ ] Confirm the full evaluation path stays under the runtime limit.
-- [ ] Confirm all required environment variables are documented and supported.
-- [ ] Confirm no secret is hardcoded in the repository.
+- [x] Confirm the full evaluation path stays under the runtime limit.
+- [x] Confirm all required environment variables are documented and supported.
+- [x] Confirm no secret is hardcoded in the repository.
 
 ## Final Pre-Submission Checklist
-- [ ] At least three tasks exist and are labeled easy, medium, and hard.
-- [ ] The environment represents a real-world OOD decision system rather than a toy example.
-- [ ] The only decision actions are `accept`, `reject`, and `review`.
-- [ ] Reward is meaningful and non-sparse across the episode.
+- [x] At least three tasks exist and are labeled easy, medium, and hard.
+- [x] The environment represents a real-world OOD decision system rather than a toy example.
+- [x] The only decision actions are `accept`, `reject`, and `review`.
+- [x] Reward is meaningful and non-sparse across the episode.
 - [x] Grading is deterministic and normalized to `0.0` to `1.0`.
-- [ ] Typed models are complete and OpenEnv-compliant.
-- [ ] `reset()`, `step()`, and `state` all behave correctly.
-- [ ] `inference.py` exists and meets all naming and environment-variable requirements.
-- [ ] `openenv.yaml` is valid.
+- [x] Typed models are complete and OpenEnv-compliant.
+- [x] `reset()`, `step()`, and `state` all behave correctly.
+- [x] `inference.py` exists and meets all naming and environment-variable requirements.
+- [x] `openenv.yaml` is valid.
 - [ ] Docker build and run are successful.
 - [ ] Hugging Face Space deployment responds to `reset()`.
-- [ ] Runtime stays below 20 minutes on the target hardware budget.
-- [ ] OpenEnv validation passes.
-- [ ] README, metadata, and manifests reflect the final environment accurately.
-- [ ] No starter echo-environment behavior remains anywhere in the submission.
+- [x] Runtime stays below 20 minutes on the target hardware budget.
+- [x] OpenEnv validation passes.
+- [x] README, metadata, and manifests reflect the final environment accurately.
+- [x] No starter-template behavior remains anywhere in the submission.

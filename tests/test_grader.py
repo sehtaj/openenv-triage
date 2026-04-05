@@ -158,3 +158,20 @@ def test_aggregate_task_scores_uses_equal_weight_mean() -> None:
     hard = grade_episode(TASK_BANK["hard"], ["reject" for _ in TASK_BANK["hard"].cases])
 
     assert aggregate_task_scores((easy, medium, hard)) == 0.510417
+
+
+def test_optimal_policy_requires_ood_aware_evidence_sensitive_behavior() -> None:
+    for task_name in ("medium", "hard"):
+        definition = TASK_BANK[task_name]
+        optimal = grade_episode(definition, [case.optimal_decision for case in definition.cases])
+        follow_model = grade_episode(
+            definition,
+            [case.model_recommendation for case in definition.cases],
+        )
+
+        assert optimal.normalized_score > follow_model.normalized_score
+        assert any(
+            case.is_ood and case.model_recommendation != case.optimal_decision
+            for case in definition.cases
+        )
+        assert any(case.optimal_decision == "review" for case in definition.cases)

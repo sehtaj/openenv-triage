@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from time import perf_counter
+import tracemalloc
 
+from pydantic import ValidationError
 from inference import _decision_for_observation
 from models import TriageAction
 from server.my_env_environment import MyEnvironment
@@ -100,6 +102,38 @@ def test_step_after_done_returns_stable_completed_observation() -> None:
     assert "completed" in (completed.last_feedback or "").lower()
 
 
+def test_invalid_action_payload_is_rejected_deterministically() -> None:
+    try:
+        TriageAction.model_validate({"decision": "escalate", "rationale": "invalid"})
+    except ValidationError as exc:
+        assert "decision" in str(exc)
+    else:  # pragma: no cover
+        raise AssertionError("Invalid decisions must be rejected by the typed action model.")
+
+
+def test_parallel_environment_instances_do_not_share_state() -> None:
+    env_easy = MyEnvironment()
+    env_hard = MyEnvironment()
+
+    obs_easy = env_easy.reset(task="easy", episode_id="easy-episode")
+    obs_hard = env_hard.reset(task="hard", episode_id="hard-episode")
+
+    for _ in range(3):
+        obs_easy = env_easy.step(TriageAction(decision=_decision_for_observation(obs_easy), rationale="easy"))
+    for _ in range(2):
+        obs_hard = env_hard.step(TriageAction(decision=_decision_for_observation(obs_hard), rationale="hard"))
+
+    state_easy = env_easy.state
+    state_hard = env_hard.state
+
+    assert state_easy.episode_id == "easy-episode"
+    assert state_hard.episode_id == "hard-episode"
+    assert state_easy.task_name == "easy"
+    assert state_hard.task_name == "hard"
+    assert state_easy.processed_cases == 3
+    assert state_hard.processed_cases == 2
+
+
 def test_baseline_policy_is_reproducible_for_all_tasks() -> None:
     first_pass = {task: _run_baseline_episode(task) for task in ("easy", "medium", "hard")}
     second_pass = {task: _run_baseline_episode(task) for task in ("easy", "medium", "hard")}
@@ -117,3 +151,24 @@ def test_local_baseline_runtime_is_lightweight() -> None:
     elapsed = perf_counter() - start
 
     assert elapsed < 1.0
+
+
+def test_repeated_resets_do_not_show_unbounded_memory_growth() -> None:
+    tracemalloc.start()
+    env = MyEnvironment()
+
+    for _ in range(40):
+        observation = env.reset(task="easy")
+        while not observation.done:
+            observation = env.step(
+                TriageAction(
+                    decision=_decision_for_observation(observation),
+                    rationale="memory_check",
+                )
+            )
+
+    current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
+    assert current < 1_000_000
+    assert peak < 2_500_000
