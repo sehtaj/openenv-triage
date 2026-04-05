@@ -135,20 +135,34 @@ This means:
 
 Aggregate evaluation across `easy`, `medium`, and `hard` is the arithmetic mean of the three normalized task scores.
 
+The baseline script prints only these line types:
+
+```text
+[START] task=<task_name> env=<env_name> model=<model_name>
+[STEP] step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
+[END] success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...,rn>
+```
+
 ## Project Structure
 
 ```text
 my_env/
+├── AGENTS.md
+├── DOCS/
+│   ├── AGENTS.md
+│   ├── PROGRESS.md
+│   └── RULES.md
 ├── __init__.py
 ├── client.py
 ├── inference.py
 ├── models.py
 ├── openenv.yaml
-├── PROGRESS.md
 ├── pyproject.toml
 ├── README.md
+├── rules.md
 ├── tests/
 │   └── test_grader.py
+├── validate-submission.sh
 └── server/
     ├── app.py
     ├── grader.py
@@ -171,4 +185,12 @@ This repo follows the standard OpenEnv layout and can be deployed to Hugging Fac
 
 ```bash
 openenv push
+```
+
+## Validation
+
+Run the local submission checks with:
+
+```bash
+./validate-submission.sh
 ```

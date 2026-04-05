@@ -6,6 +6,8 @@
 
 """FastAPI application for the operational risk triage environment."""
 
+import os
+
 try:
     from openenv.core.env_server.http_server import create_app
 except Exception as exc:  # pragma: no cover
@@ -28,20 +30,15 @@ app = create_app(
     env_name="operational_risk_triage",
     max_concurrent_envs=4,
 )
-
-
-def main(host: str = "0.0.0.0", port: int = 8000) -> None:
+def main() -> None:
     """Run the OpenEnv-compatible FastAPI server locally."""
 
     import uvicorn
 
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", "8000"))
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=8000)
-    args = parser.parse_args()
-    main(port=args.port)
+    main()
