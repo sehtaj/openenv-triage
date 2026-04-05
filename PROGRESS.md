@@ -247,7 +247,7 @@
 - [x] Ensure `inference.py` reads `API_BASE_URL` from the environment.
 - [x] Ensure `inference.py` reads `MODEL_NAME` from the environment.
 - [x] Ensure `inference.py` reads `HF_TOKEN` from the environment if deployment or gated assets require it.
-- [ ] Ensure `inference.py` can connect to the running environment and complete an episode end-to-end.
+- [x] Ensure `inference.py` can connect to the running environment and complete an episode end-to-end.
 
 ### 8.3 Baseline Agent Behavior
 - [x] Define the system prompt for operational decision-making behavior.
@@ -305,12 +305,12 @@
 ## Stage 11
 ### 11.1 Local Validation
 - [ ] Run unit tests for models, environment logic, and grader behavior.
-- [ ] Run integration tests for reset-step-state sequences.
-- [ ] Run a baseline episode through `inference.py`.
+- [x] Run integration tests for reset-step-state sequences.
+- [x] Run a baseline episode through `inference.py`.
 - [ ] Run Docker build and container smoke tests.
-- [ ] Run `openenv` validation locally and fix all reported issues.
+- [x] Run `openenv` validation locally and fix all reported issues.
 - [ ] Re-run validation after every manifest, schema, or Docker change.
-- [ ] Verify baseline produces reproducible scores across multiple runs
+- [x] Verify baseline produces reproducible scores across multiple runs
 
 ### 11.2 Hugging Face Space Validation
 - [ ] Prepare the repo for Hugging Face Space deployment without local-only assumptions.
@@ -342,7 +342,7 @@
 - [x] Confirm `inference.py` reads `API_BASE_URL`.
 - [x] Confirm `inference.py` reads `MODEL_NAME`.
 - [x] Confirm `inference.py` reads `HF_TOKEN`.
-- [ ] Confirm `inference.py` can run against the local server.
+- [x] Confirm `inference.py` can run against the local server.
 - [ ] Confirm `inference.py` can run against the deployed Hugging Face Space.
 - [x] Confirm `inference.py` produces valid `accept`, `reject`, or `review` actions only.
 
