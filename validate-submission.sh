@@ -26,7 +26,7 @@ if [[ -z "${HF_SPACE_URL:-}" ]]; then
 fi
 
 openenv validate
-docker build -t operational-risk-triage:latest -f server/Dockerfile .
+docker build -t operational-risk-triage:latest .
 status_code="$(curl -s -o /dev/null -w "%{http_code}" -X POST "${HF_SPACE_URL%/}/reset")"
 if [[ "$status_code" != "200" ]]; then
   echo "HF Space /reset check failed with HTTP ${status_code}"
