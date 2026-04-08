@@ -25,4 +25,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app:$PYTHONPATH"
 ENV PORT=7860
 
-CMD ["sh", "-c", "python -m uvicorn server.app:app --host 0.0.0.0 --port 7860"]
+CMD ["sh", "-c", "python -m uvicorn server.app:app --host 0.0.0.0 --port ${PORT:-7860}"]
