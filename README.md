@@ -299,7 +299,7 @@ This submission implements the expected OpenEnv interaction model:
 
 - `reset()`
 - `step(action)`
-- `state()`
+- `state`
 
 It also preserves the required structured inference logs:
 
