@@ -69,6 +69,9 @@ def _format_rewards(values: Iterable[float]) -> str:
 
 
 def _llm_enabled(api_base_url: str | None) -> bool:
+    llm_opt_in = os.environ.get("ENABLE_LLM", "false").strip().lower() == "true"
+    if not llm_opt_in:
+        return False
     if api_base_url:
         return True
     api_key = os.environ.get("OPENAI_API_KEY")
