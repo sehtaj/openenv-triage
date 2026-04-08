@@ -148,6 +148,8 @@ That distinction matters:
 
 The baseline behaves like a production decision layer sitting on top of upstream scoring systems.
 
+The default submission path is **heuristic-only**. LLM usage remains available only as an explicit opt-in through `ENABLE_LLM=true`, which keeps the shipped baseline deterministic, cheap, and operationally interpretable.
+
 ## 🧱 Key Design Principles
 
 - **Conservative acceptance**  
@@ -186,6 +188,17 @@ Why performance is strong:
 - it improves `hard` substantially without degrading `easy` or `medium`
 
 This is near-optimal performance from a deterministic, interpretable ruleset, which is exactly the kind of baseline an operations team could inspect and trust.
+
+### Baseline Comparison
+
+Shortcut policies perform badly, which is a useful sanity check that the environment is not solvable by trivial behavior.
+
+| Policy | Easy | Medium | Hard | Mean |
+|---|---:|---:|---:|---:|
+| Always Accept | 0.00 | 0.00 | 0.00 | 0.00 |
+| Always Reject | 0.00 | 0.00 | 0.00 | 0.00 |
+| Always Review | 0.00 | 0.00 | 0.00 | 0.00 |
+| Deterministic Heuristic | 1.00 | 1.00 | 0.94 | 0.98 |
 
 ## 🏗️ Implementation
 
@@ -226,6 +239,13 @@ Run the deterministic baseline against the local server:
 ```
 
 Change `--task` to `easy`, `medium`, or `hard`.
+
+Optional LLM-assisted mode can be enabled explicitly:
+
+```bash
+ENABLE_LLM=true API_BASE_URL=https://api.openai.com/v1 MODEL_NAME=gpt-4.1-mini OPENAI_API_KEY=... \
+.venv/bin/python inference.py --env-url http://localhost:8000 --task easy
+```
 
 ### Docker
 

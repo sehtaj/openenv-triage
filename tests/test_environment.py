@@ -5,10 +5,16 @@ from __future__ import annotations
 from time import perf_counter
 import tracemalloc
 
+from openai import OpenAI
 from pydantic import ValidationError
 from inference import _decision_for_observation
 from models import TriageAction
 from server.my_env_environment import MyEnvironment
+
+
+def _baseline_decision(observation):
+    client = OpenAI(api_key="dummy")
+    return _decision_for_observation(client, observation, llm_enabled=False)
 
 
 def _run_baseline_episode(task: str) -> tuple[list[str], list[float], float]:
@@ -18,7 +24,7 @@ def _run_baseline_episode(task: str) -> tuple[list[str], list[float], float]:
     rewards: list[float] = []
 
     while not observation.done:
-        decision = _decision_for_observation(observation)
+        decision = _baseline_decision(observation)
         actions.append(decision)
         observation = env.step(
             TriageAction(
@@ -53,7 +59,7 @@ def test_step_updates_state_and_completes_episode() -> None:
     env = MyEnvironment()
     observation = env.reset(task="easy")
 
-    first_decision = _decision_for_observation(observation)
+    first_decision = _baseline_decision(observation)
     observation = env.step(TriageAction(decision=first_decision, rationale="first"))
     state = env.state
 
@@ -65,7 +71,7 @@ def test_step_updates_state_and_completes_episode() -> None:
     assert observation.normalized_score is not None
 
     while not observation.done:
-        next_decision = _decision_for_observation(observation)
+        next_decision = _baseline_decision(observation)
         observation = env.step(TriageAction(decision=next_decision, rationale="loop"))
 
     final_state = env.state
@@ -91,7 +97,7 @@ def test_step_after_done_returns_stable_completed_observation() -> None:
     env = MyEnvironment()
     observation = env.reset(task="easy")
     while not observation.done:
-        decision = _decision_for_observation(observation)
+        decision = _baseline_decision(observation)
         observation = env.step(TriageAction(decision=decision, rationale="complete"))
 
     completed = env.step(TriageAction(decision="accept", rationale="after_done"))
@@ -119,9 +125,9 @@ def test_parallel_environment_instances_do_not_share_state() -> None:
     obs_hard = env_hard.reset(task="hard", episode_id="hard-episode")
 
     for _ in range(3):
-        obs_easy = env_easy.step(TriageAction(decision=_decision_for_observation(obs_easy), rationale="easy"))
+        obs_easy = env_easy.step(TriageAction(decision=_baseline_decision(obs_easy), rationale="easy"))
     for _ in range(2):
-        obs_hard = env_hard.step(TriageAction(decision=_decision_for_observation(obs_hard), rationale="hard"))
+        obs_hard = env_hard.step(TriageAction(decision=_baseline_decision(obs_hard), rationale="hard"))
 
     state_easy = env_easy.state
     state_hard = env_hard.state
@@ -139,9 +145,9 @@ def test_baseline_policy_is_reproducible_for_all_tasks() -> None:
     second_pass = {task: _run_baseline_episode(task) for task in ("easy", "medium", "hard")}
 
     assert first_pass == second_pass
-    assert first_pass["easy"][2] == 0.53125
-    assert first_pass["medium"][2] == 0.0
-    assert first_pass["hard"][2] == 0.0
+    assert first_pass["easy"][2] == 1.0
+    assert first_pass["medium"][2] == 1.0
+    assert first_pass["hard"][2] == 0.941176
 
 
 def test_local_baseline_runtime_is_lightweight() -> None:
@@ -162,7 +168,7 @@ def test_repeated_resets_do_not_show_unbounded_memory_growth() -> None:
         while not observation.done:
             observation = env.step(
                 TriageAction(
-                    decision=_decision_for_observation(observation),
+                    decision=_baseline_decision(observation),
                     rationale="memory_check",
                 )
             )
