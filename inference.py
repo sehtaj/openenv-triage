@@ -319,13 +319,28 @@ def run_episode(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env-url")
+    parser.add_argument("--env-url", dest="env_url")
+    parser.add_argument("--env_url", dest="env_url")
     parser.add_argument("--task", choices=["easy", "medium", "hard"], default="easy")
-    args = parser.parse_args()
+    parser.add_argument("--model", dest="cli_model_name")
+    parser.add_argument("--model-name", dest="cli_model_name")
+    parser.add_argument("--model_name", dest="cli_model_name")
+    parser.add_argument("--api-base-url", dest="cli_api_base_url")
+    parser.add_argument("--api_base_url", dest="cli_api_base_url")
+    parser.add_argument("--hf-token", dest="cli_hf_token")
+    parser.add_argument("--hf_token", dest="cli_hf_token")
+    args, _unknown = parser.parse_known_args()
 
-    api_base_url = os.environ.get("API_BASE_URL", "").strip() or None
-    model_name = os.environ.get("MODEL_NAME", "gpt-4.1-mini")
-    hf_token = os.environ.get("HF_TOKEN")
+    api_base_url = (
+        args.cli_api_base_url
+        or os.environ.get("API_BASE_URL", "").strip()
+        or None
+    )
+    model_name = (
+        args.cli_model_name
+        or os.environ.get("MODEL_NAME", "gpt-4.1-mini")
+    )
+    hf_token = args.cli_hf_token or os.environ.get("HF_TOKEN")
     env_url = (
         args.env_url
         or os.environ.get("ENV_URL", "").strip()
