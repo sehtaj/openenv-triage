@@ -319,16 +319,22 @@ def run_episode(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env-url", default="http://localhost:8000")
+    parser.add_argument("--env-url")
     parser.add_argument("--task", choices=["easy", "medium", "hard"], default="easy")
     args = parser.parse_args()
 
     api_base_url = os.environ.get("API_BASE_URL", "").strip() or None
     model_name = os.environ.get("MODEL_NAME", "gpt-4.1-mini")
     hf_token = os.environ.get("HF_TOKEN")
+    env_url = (
+        args.env_url
+        or os.environ.get("ENV_URL", "").strip()
+        or os.environ.get("HF_SPACE_URL", "").strip()
+        or "http://localhost:8000"
+    )
 
     return run_episode(
-        env_url=args.env_url,
+        env_url=env_url,
         task=args.task,
         api_base_url=api_base_url,
         model_name=model_name,
