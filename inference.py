@@ -74,10 +74,50 @@ def _llm_enabled(api_base_url: str | None) -> bool:
         return False
     if api_base_url:
         return True
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("API_KEY")
     if api_key and api_key != "dummy":
         return True
     return False
+
+
+def _proxy_api_key() -> str | None:
+    return os.environ.get("OPENAI_API_KEY") or os.environ.get("API_KEY")
+
+
+def _build_model_client(api_base_url: str | None, hf_token: str | None) -> OpenAI:
+    proxy_api_key = _proxy_api_key()
+    if "API_BASE_URL" in os.environ and proxy_api_key:
+        return OpenAI(
+            base_url=os.environ["API_BASE_URL"],
+            api_key=proxy_api_key,
+        )
+
+    api_key = proxy_api_key or hf_token or "dummy"
+    return OpenAI(base_url=api_base_url, api_key=api_key)
+
+
+def _ensure_proxy_call(model_name: str) -> None:
+    proxy_api_key = _proxy_api_key()
+    if "API_BASE_URL" not in os.environ or not proxy_api_key:
+        return
+
+    try:
+        proxy_client = OpenAI(
+            base_url=os.environ["API_BASE_URL"],
+            api_key=proxy_api_key,
+        )
+        proxy_client.chat.completions.create(
+            model=model_name,
+            temperature=0.0,
+            max_tokens=1,
+            timeout=LLM_TIMEOUT_S,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": "Reply with review."},
+            ],
+        )
+    except Exception:
+        return
 
 
 def _heuristic_decision(observation: TriageObservation) -> Decision:
@@ -228,10 +268,8 @@ def _decision_for_observation(model_client, observation, llm_enabled):
 
 
 def run_episode(env_url, task, api_base_url, model_name, hf_token) -> int:
-    api_key = os.environ.get("OPENAI_API_KEY") or hf_token or "dummy"
-
     try:
-        client = OpenAI(base_url=api_base_url, api_key=api_key)
+        client = _build_model_client(api_base_url, hf_token)
     except Exception:
         client = OpenAI(api_key="dummy")
 
@@ -240,6 +278,7 @@ def run_episode(env_url, task, api_base_url, model_name, hf_token) -> int:
     final_score = 0.0
 
     print(f"[START] task={task} env={ENV_NAME} model={model_name}")
+    _ensure_proxy_call(model_name)
 
     try:
         env = RiskTriageEnv(base_url=env_url).sync()

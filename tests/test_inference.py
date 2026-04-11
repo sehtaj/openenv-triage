@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from contextlib import redirect_stdout
 from io import StringIO
 from unittest.mock import patch
@@ -143,3 +144,142 @@ def test_run_episode_emits_only_required_log_lines() -> None:
     assert lines[1] == "[STEP] step=1 action=accept reward=3.00 done=false error=null"
     assert lines[2] == "[STEP] step=2 action=accept reward=3.00 done=true error=null"
     assert lines[3] == "[END] success=true steps=2 score=1.000000 rewards=3.00,3.00"
+
+
+def test_run_episode_makes_one_proxy_openai_call_without_changing_logs() -> None:
+    buffer = StringIO()
+    client_inits: list[tuple[str | None, str | None]] = []
+    proxy_calls: list[dict[str, object]] = []
+
+    class _FakeChatCompletions:
+        def create(self, **kwargs):
+            proxy_calls.append(kwargs)
+            return type(
+                "_Response",
+                (),
+                {
+                    "choices": [
+                        type(
+                            "_Choice",
+                            (),
+                            {
+                                "message": type(
+                                    "_Message",
+                                    (),
+                                    {"content": "review"},
+                                )()
+                            },
+                        )()
+                    ]
+                },
+            )()
+
+    class _FakeClient:
+        def __init__(self, *, base_url=None, api_key=None):
+            client_inits.append((base_url, api_key))
+            self.chat = type(
+                "_Chat",
+                (),
+                {"completions": _FakeChatCompletions()},
+            )()
+
+    with (
+        patch.dict(
+            os.environ,
+            {
+                "API_BASE_URL": "https://proxy.example/v1",
+                "OPENAI_API_KEY": "proxy-key",
+            },
+            clear=False,
+        ),
+        patch.object(inference, "OpenAI", _FakeClient),
+        patch.object(inference, "RiskTriageEnv", _FakeSyncEnv),
+        redirect_stdout(buffer),
+    ):
+        exit_code = inference.run_episode(
+            env_url="http://example.com",
+            task="easy",
+            api_base_url=None,
+            model_name="gpt-4.1-mini",
+            hf_token=None,
+        )
+
+    lines = buffer.getvalue().strip().splitlines()
+
+    assert exit_code == 0
+    assert client_inits[:2] == [
+        ("https://proxy.example/v1", "proxy-key"),
+        ("https://proxy.example/v1", "proxy-key"),
+    ]
+    assert len(proxy_calls) == 1
+    assert proxy_calls[0]["model"] == "gpt-4.1-mini"
+    assert lines[0] == "[START] task=easy env=operational_risk_triage model=gpt-4.1-mini"
+    assert lines[1] == "[STEP] step=1 action=accept reward=3.00 done=false error=null"
+    assert lines[2] == "[STEP] step=2 action=accept reward=3.00 done=true error=null"
+    assert lines[3] == "[END] success=true steps=2 score=1.000000 rewards=3.00,3.00"
+
+
+def test_run_episode_uses_api_key_fallback_for_proxy_call() -> None:
+    client_inits: list[tuple[str | None, str | None]] = []
+    proxy_calls = 0
+
+    class _FakeChatCompletions:
+        def create(self, **kwargs):
+            nonlocal proxy_calls
+            del kwargs
+            proxy_calls += 1
+            return type(
+                "_Response",
+                (),
+                {
+                    "choices": [
+                        type(
+                            "_Choice",
+                            (),
+                            {
+                                "message": type(
+                                    "_Message",
+                                    (),
+                                    {"content": "review"},
+                                )()
+                            },
+                        )()
+                    ]
+                },
+            )()
+
+    class _FakeClient:
+        def __init__(self, *, base_url=None, api_key=None):
+            client_inits.append((base_url, api_key))
+            self.chat = type(
+                "_Chat",
+                (),
+                {"completions": _FakeChatCompletions()},
+            )()
+
+    with (
+        patch.dict(
+            os.environ,
+            {
+                "API_BASE_URL": "https://proxy.example/v1",
+                "API_KEY": "validator-key",
+            },
+            clear=True,
+        ),
+        patch.object(inference, "OpenAI", _FakeClient),
+        patch.object(inference, "RiskTriageEnv", _FakeSyncEnv),
+    ):
+        exit_code = inference.run_episode(
+            env_url="http://example.com",
+            task="easy",
+            api_base_url=None,
+            model_name="gpt-4.1-mini",
+            hf_token=None,
+        )
+
+    assert exit_code == 0
+    assert client_inits[:2] == [
+        ("https://proxy.example/v1", "validator-key"),
+        ("https://proxy.example/v1", "validator-key"),
+    ]
+    assert proxy_calls == 1
