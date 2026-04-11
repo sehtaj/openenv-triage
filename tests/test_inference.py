@@ -90,7 +90,7 @@ class _FakeSyncEnv:
         self._steps += 1
         done = self._steps >= 2
         return StepResult(
-            observation=_observation(done=done, normalized_score=1.0 if done else 0.5),
+            observation=_observation(done=done, normalized_score=0.99 if done else 0.5),
             reward=3.0,
             done=done,
         )
@@ -107,7 +107,7 @@ class _FakeSyncEnv:
             review_budget_total=0,
             remaining_review_budget=0,
             cumulative_reward=6.0,
-            normalized_score=1.0,
+            normalized_score=0.99,
             raw_score_min=-10.0,
             raw_score_max=10.0,
             raw_score_optimal=6.0,
@@ -143,7 +143,7 @@ def test_run_episode_emits_only_required_log_lines() -> None:
     assert lines[0] == "[START] task=easy env=operational_risk_triage model=gpt-4.1-mini"
     assert lines[1] == "[STEP] step=1 action=accept reward=3.00 done=false error=null"
     assert lines[2] == "[STEP] step=2 action=accept reward=3.00 done=true error=null"
-    assert lines[3] == "[END] success=true steps=2 score=1.000000 rewards=3.00,3.00"
+    assert lines[3] == "[END] success=true steps=2 score=0.99 rewards=3.00,3.00"
 
 
 def test_run_episode_makes_one_proxy_openai_call_without_changing_logs() -> None:
@@ -216,7 +216,7 @@ def test_run_episode_makes_one_proxy_openai_call_without_changing_logs() -> None
     assert lines[0] == "[START] task=easy env=operational_risk_triage model=gpt-4.1-mini"
     assert lines[1] == "[STEP] step=1 action=accept reward=3.00 done=false error=null"
     assert lines[2] == "[STEP] step=2 action=accept reward=3.00 done=true error=null"
-    assert lines[3] == "[END] success=true steps=2 score=1.000000 rewards=3.00,3.00"
+    assert lines[3] == "[END] success=true steps=2 score=0.99 rewards=3.00,3.00"
 
 
 def test_run_episode_uses_api_key_fallback_for_proxy_call() -> None:

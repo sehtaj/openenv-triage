@@ -17,6 +17,8 @@ except ImportError:
 REVIEW_EXHAUSTION_PENALTY = -3.0
 INVALID_ACTION_PENALTY = 2.0
 VALID_DECISIONS: tuple[Decision, ...] = ("accept", "reject", "review")
+MIN_NORMALIZED_SCORE = 0.01
+MAX_NORMALIZED_SCORE = 0.99
 
 
 @dataclass(frozen=True)
@@ -94,12 +96,12 @@ def prefix_score_bounds(definition: TaskDefinition, processed_cases: int) -> Sco
 
 
 def normalize_raw_score(raw_score: float, bounds: ScoreBounds) -> float:
-    """Map a raw business-value score into the deterministic range [0.0, 1.0]."""
+    """Map a raw business-value score into the deterministic range (0.0, 1.0)."""
 
     if bounds.optimal_raw_score <= 0:
-        return 1.0 if raw_score >= bounds.optimal_raw_score else 0.0
+        return MAX_NORMALIZED_SCORE if raw_score >= bounds.optimal_raw_score else MIN_NORMALIZED_SCORE
     normalized = raw_score / bounds.optimal_raw_score
-    return round(max(0.0, min(1.0, normalized)), 6)
+    return round(max(MIN_NORMALIZED_SCORE, min(MAX_NORMALIZED_SCORE, normalized)), 2)
 
 
 def _outcome_category(case: TaskCase, decision: Decision) -> str:
@@ -206,4 +208,4 @@ def aggregate_task_scores(grades: Iterable[EpisodeGrade]) -> float:
     grade_list = tuple(grades)
     if not grade_list:
         raise ValueError("At least one episode grade is required to aggregate task scores.")
-    return round(mean(grade.normalized_score for grade in grade_list), 6)
+    return round(mean(grade.normalized_score for grade in grade_list), 2)

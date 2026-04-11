@@ -248,7 +248,7 @@ class MyEnvironment(Environment[TriageAction, TriageObservation, TriageState]):
             "score_raw_optimal": self._episode.score_bounds.optimal_raw_score,
             "score_aggregate_method": "mean_normalized_score_across_tasks",
             "public_reward_mode": "raw_business_value",
-            "normalized_score_definition": "clip(raw_score / raw_score_optimal, 0.0, 1.0)",
+            "normalized_score_definition": "clip(raw_score / raw_score_optimal, 0.01, 0.99)",
             "seed": seed,
         }
         if current_case is not None:

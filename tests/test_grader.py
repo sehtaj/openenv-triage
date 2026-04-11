@@ -85,8 +85,8 @@ def test_invalid_actions_take_a_deterministic_penalty_path() -> None:
 def test_normalization_bounds_stay_inside_zero_and_one() -> None:
     bounds = score_bounds_for_task(TASK_BANK["medium"])
 
-    assert normalize_raw_score(bounds.min_raw_score - 50.0, bounds) == 0.0
-    assert normalize_raw_score(bounds.max_raw_score + 50.0, bounds) == 1.0
+    assert normalize_raw_score(bounds.min_raw_score - 50.0, bounds) == 0.01
+    assert normalize_raw_score(bounds.max_raw_score + 50.0, bounds) == 0.99
 
 
 def test_golden_easy_optimal_episode() -> None:
@@ -95,7 +95,7 @@ def test_golden_easy_optimal_episode() -> None:
     grade = grade_episode(definition, actions)
 
     assert grade.raw_score == 64.0
-    assert grade.normalized_score == 1.0
+    assert grade.normalized_score == 0.99
 
 
 def test_golden_medium_follow_model_episode() -> None:
@@ -104,7 +104,7 @@ def test_golden_medium_follow_model_episode() -> None:
     grade = grade_episode(definition, actions)
 
     assert grade.raw_score == -86.0
-    assert grade.normalized_score == 0.0
+    assert grade.normalized_score == 0.01
 
 
 def test_golden_hard_simple_baseline_episode() -> None:
@@ -143,7 +143,7 @@ def test_golden_hard_simple_baseline_episode() -> None:
     grade = grade_episode(definition, actions)
 
     assert grade.raw_score == -22.0
-    assert grade.normalized_score == 0.0
+    assert grade.normalized_score == 0.01
 
 
 def test_aggregate_task_scores_uses_equal_weight_mean() -> None:
@@ -157,7 +157,7 @@ def test_aggregate_task_scores_uses_equal_weight_mean() -> None:
     )
     hard = grade_episode(TASK_BANK["hard"], ["reject" for _ in TASK_BANK["hard"].cases])
 
-    assert aggregate_task_scores((easy, medium, hard)) == 0.510417
+    assert aggregate_task_scores((easy, medium, hard)) == 0.51
 
 
 def test_optimal_policy_requires_ood_aware_evidence_sensitive_behavior() -> None:

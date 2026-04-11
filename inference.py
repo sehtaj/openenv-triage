@@ -60,8 +60,8 @@ def _format_reward(value: float) -> str:
 
 def _format_score(value: float | None) -> str:
     if value is None:
-        return "0.000000"
-    return f"{value:.6f}"
+        return "0.01"
+    return f"{value:.2f}"
 
 
 def _format_rewards(values: Iterable[float]) -> str:
@@ -333,16 +333,22 @@ def run_episode(env_url, task, api_base_url, model_name, hf_token) -> int:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--env-url", default=os.environ.get("ENV_URL", "http://localhost:8000"))
-    parser.add_argument("--task", default="easy")
     args = parser.parse_args()
 
-    return run_episode(
-        env_url=args.env_url,
-        task=args.task,
-        api_base_url=os.environ.get("API_BASE_URL"),
-        model_name=os.environ.get("MODEL_NAME", "gpt-4.1-mini"),
-        hf_token=os.environ.get("HF_TOKEN"),
-    )
+    api_base_url = os.environ.get("API_BASE_URL")
+    model_name = os.environ.get("MODEL_NAME", "gpt-4.1-mini")
+    hf_token = os.environ.get("HF_TOKEN")
+
+    for task in ("easy", "medium", "hard"):
+        run_episode(
+            env_url=args.env_url,
+            task=task,
+            api_base_url=api_base_url,
+            model_name=model_name,
+            hf_token=hf_token,
+        )
+
+    return 0
 
 
 if __name__ == "__main__":

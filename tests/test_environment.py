@@ -80,7 +80,7 @@ def test_step_updates_state_and_completes_episode() -> None:
     assert observation.processed_cases == 20
     assert final_state.episode_status == "completed"
     assert final_state.processed_cases == 20
-    assert 0.0 <= float(observation.normalized_score or 0.0) <= 1.0
+    assert 0.0 < float(observation.normalized_score or 0.0) < 1.0
 
 
 def test_step_before_reset_raises_runtime_error() -> None:
@@ -145,9 +145,9 @@ def test_baseline_policy_is_reproducible_for_all_tasks() -> None:
     second_pass = {task: _run_baseline_episode(task) for task in ("easy", "medium", "hard")}
 
     assert first_pass == second_pass
-    assert first_pass["easy"][2] == 1.0
-    assert first_pass["medium"][2] == 1.0
-    assert first_pass["hard"][2] == 0.941176
+    assert first_pass["easy"][2] == 0.99
+    assert first_pass["medium"][2] == 0.99
+    assert first_pass["hard"][2] == 0.94
 
 
 def test_local_baseline_runtime_is_lightweight() -> None:
