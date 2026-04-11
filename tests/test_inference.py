@@ -120,6 +120,12 @@ class _FakeSyncEnv:
         )
 
 
+class _FailingStepEnv(_FakeSyncEnv):
+    def step(self, action):
+        del action
+        raise RuntimeError("hidden failure")
+
+
 def test_run_episode_emits_only_required_log_lines() -> None:
     buffer = StringIO()
 
@@ -283,3 +289,26 @@ def test_run_episode_uses_api_key_fallback_for_proxy_call() -> None:
         ("https://proxy.example/v1", "validator-key"),
     ]
     assert proxy_calls == 1
+
+
+def test_run_episode_error_path_keeps_score_strictly_in_range() -> None:
+    buffer = StringIO()
+
+    with (
+        patch.object(inference, "RiskTriageEnv", _FailingStepEnv),
+        redirect_stdout(buffer),
+    ):
+        exit_code = inference.run_episode(
+            env_url="http://example.com",
+            task="easy",
+            api_base_url=None,
+            model_name="gpt-4.1-mini",
+            hf_token=None,
+        )
+
+    lines = buffer.getvalue().strip().splitlines()
+
+    assert exit_code == 0
+    assert lines[0] == "[START] task=easy env=operational_risk_triage model=gpt-4.1-mini"
+    assert lines[1] == "[STEP] step=1 action=accept reward=0.00 done=true error=hidden_failure"
+    assert lines[2] == "[END] success=false steps=0 score=0.01 rewards="

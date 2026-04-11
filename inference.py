@@ -275,7 +275,7 @@ def run_episode(env_url, task, api_base_url, model_name, hf_token) -> int:
 
     rewards = []
     steps = 0
-    final_score = 0.0
+    final_score = None
 
     print(f"[START] task={task} env={ENV_NAME} model={model_name}")
     _ensure_proxy_call(model_name)
@@ -308,7 +308,8 @@ def run_episode(env_url, task, api_base_url, model_name, hf_token) -> int:
 
                 rewards.append(reward)
                 steps += 1
-                final_score = float(result.observation.normalized_score or 0.0)
+                normalized_score = result.observation.normalized_score
+                final_score = float(normalized_score) if normalized_score is not None else None
 
                 print(
                     f"[STEP] step={steps} action={action} reward={_format_reward(reward)} done={_bool_text(result.done)} error=null"
