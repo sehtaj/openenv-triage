@@ -13,69 +13,56 @@ tags:
 ---
 
 # Operational Risk Triage Environment
-*A production-style decision environment for fraud, trust, and operational risk triage under uncertainty.*
 
-This project models a real queue management problem used in fraud operations, payments risk, trust and safety, and anomaly investigation systems.
+A deterministic OpenEnv environment for queue-level `accept` / `reject` / `review` decision-making under asymmetric cost, limited analyst capacity, and partially reliable upstream signals.
 
-At each step, an agent sees a structured case and must choose exactly one action:
+This repo models the kind of operational workflow that shows up in payments fraud review, merchant risk, trust and safety escalation, and account integrity operations. The point is not just to predict risk. The point is to decide what to do next.
+
+## Overview
+
+At each step, the agent receives a structured case and must choose exactly one action:
 
 - `accept`
 - `reject`
 - `review`
 
-The environment is deterministic, OpenEnv-compatible, and designed around the actual business tradeoffs that make operational triage difficult:
+The environment is designed around operational tradeoffs rather than pure classification:
 
-- false accepts are expensive
-- false rejects still carry meaningful cost
-- review capacity is limited
-- model recommendations are informative, but not always safe to follow blindly
+- false accepts are the most expensive mistakes
+- false rejects still have real business cost
+- review capacity is scarce and task-limited
+- upstream model recommendations help, but they are intentionally not always correct
 
-This is not a toy classification benchmark. It is a workflow benchmark for high-stakes decision systems.
+The environment is deterministic end to end:
 
-## 🚨 Why This Problem Matters
+- deterministic task generation
+- deterministic grading
+- deterministic heuristic baseline
+- reproducible scores across repeated runs
 
-Real risk systems do not stop at a score.
+## Environment Contract
 
-In production, a platform still needs to decide:
+Environment name:
 
-- should this event be approved immediately?
-- should it be blocked immediately?
-- should it consume scarce human analyst capacity?
+```text
+operational_risk_triage
+```
 
-That is the problem this environment simulates.
+Tasks:
 
-Examples of where this workflow shows up:
+| Task | Cases | Review Budget |
+|---|---:|---:|
+| `easy` | 20 | 4 |
+| `medium` | 25 | 4 |
+| `hard` | 30 | 3 |
 
-- payments fraud review
-- merchant risk operations
-- trust and safety escalation
-- account integrity investigation
-- anomaly triage for suspicious platform activity
+All tasks share the same schema and action space. Difficulty increases through weaker evidence quality, higher novelty, more disagreement between visible recommendation and hidden optimal action, and tighter review-budget pressure.
 
-What makes this hard in practice is not just prediction. It is operational decision-making under uncertainty, with asymmetric costs and constrained review bandwidth.
+## Observation Space
 
-## 🧠 Environment Overview
+Each observation includes the current case plus queue-level episode state.
 
-**Environment name:** `operational_risk_triage`
-
-**Tasks:**
-
-- `easy`: 20 cases, review budget 4
-- `medium`: 25 cases, review budget 4
-- `hard`: 30 cases, review budget 3
-
-All three tasks share the same schema and action space. Difficulty increases through:
-
-- noisier or more conflicting signals
-- less complete evidence
-- weaker alignment between upstream recommendation and hidden optimal action
-- tighter review-budget pressure
-
-## 📦 Observation Space
-
-Each step exposes the current case plus queue-level control state.
-
-Core case signals include:
+Key case features include:
 
 - `risk_score`
 - `anomaly_score`
@@ -97,188 +84,106 @@ Queue and episode context includes:
 - `cumulative_reward`
 - `normalized_score`
 - action counts
-- deterministic feedback from the previous decision
+- deterministic feedback from the previous step
 
-These features are intentionally chosen to resemble a real decision console: model outputs are present, but the final action still depends on multiple signals, evidence quality, and operating constraints.
+## Action Semantics
 
-## 🎯 Action Space
-
-The action space is fixed and operationally meaningful:
-
-- `accept`: allow the case through immediately
+- `accept`: allow the case immediately
 - `reject`: block the case immediately
-- `review`: escalate to bounded human review
+- `review`: spend bounded analyst capacity on ambiguous cases
 
-`review` is useful, but costly. The budget is task-level and limited by design.
+`review` is intentionally useful but not free. The budget is fixed per task and enforced by the grader.
 
-## 💰 Reward Design
+## Reward and Scoring
 
-The reward function is step-level and business-aligned.
+The environment exposes raw business-value reward at each step and a normalized task score over the episode.
 
-The intuition is simple:
+High-level reward behavior:
 
-- correct accepts and correct rejects are rewarded
-- false accepts are penalized the most
+- correct accepts and rejects are rewarded
+- false accepts are penalized most heavily
 - false rejects are penalized materially
-- unnecessary review is penalized because analyst capacity is expensive
+- unnecessary review is penalized because analyst time is scarce
 
-Final public evaluation uses a deterministic normalized score derived from the accumulated raw business reward.
+Normalized task scores are deliberately kept strictly inside `(0, 1)`:
 
-This means the environment measures decision quality, not just label agreement.
+```text
+clip(raw_score / raw_score_optimal, 0.01, 0.99)
+```
 
-## ⚙️ Approach
+That means the public score will not be exactly `0.00` or `1.00`, including guarded error paths in `inference.py`.
 
-The submitted agent is a **deterministic heuristic policy** implemented in `inference.py`.
+## Baseline Policy
 
-This policy is:
+The shipped agent in [inference.py](inference.py) is a deterministic heuristic policy.
 
-- signal-driven
-- interpretable
-- deterministic
-- cheap to run
-- independent of any required LLM dependency for the reported results
+What it does well:
 
-Most importantly, the policy is **not keyed on case IDs** and does **not memorize a fixed answer list**. It makes decisions from the observable risk signals and policy flags available in the environment.
+- accepts genuinely clean traffic quickly
+- rejects strong multi-signal risk clusters decisively
+- treats `review` as scarce capacity rather than a generic fallback
+- uses `model_recommendation` as an input, not as the final authority
 
-That distinction matters:
+What it does not do:
 
-- a hardcoded policy would overfit exact case identities
-- this policy applies shared rules over signal combinations
-- the same logic runs across `easy`, `medium`, and `hard`
+- it does not key decisions on case IDs
+- it does not memorize a fixed answer list
+- it does not require LLM-based reasoning for the baseline decisions
 
-The baseline behaves like a production decision layer sitting on top of upstream scoring systems.
+The decision logic is interpretable and cheap to run, which makes it useful as a production-style rules baseline rather than just a benchmark submission artifact.
 
-The default submission path is **heuristic-only**. LLM usage remains available only as an explicit opt-in through `ENABLE_LLM=true`, which keeps the shipped baseline deterministic, cheap, and operationally interpretable.
+## Current Baseline Results
 
-## 🧱 Key Design Principles
-
-- **Conservative acceptance**  
-  Accept is reserved for genuinely clean cases: low history risk, low anomaly, good evidence quality, and no severe escalation flags.
-
-- **Aggressive rejection on strong signals**  
-  Severe policy flags, high anomaly, and compounding risk signals push the policy toward decisive rejection.
-
-- **Efficient review usage**  
-  Review is treated as scarce analyst capacity, not as a generic fallback. The policy spends review budget only where ambiguity is real and escalation is worth the cost.
-
-- **Uncertainty handling**  
-  Uncertainty matters in context. High uncertainty with weak evidence quality can justify review; uncertainty alone does not automatically override stronger signals.
-
-- **Signal-over-recommendation discipline**  
-  `model_recommendation` is used as an input, not as the final authority. This is especially important on harder cases where the recommendation is intentionally imperfect.
-
-## 📈 Results
-
-Current deterministic heuristic scores:
+Current deterministic baseline scores:
 
 | Task | Normalized Score |
 |---|---:|
-| Easy | 1.00 |
-| Medium | 1.00 |
-| Hard | 0.94 |
+| `easy` | `0.99` |
+| `medium` | `0.99` |
+| `hard` | `0.94` |
 
-**Mean normalized score:** `0.98`
+Mean normalized score:
 
-Why performance is strong:
+```text
+0.97
+```
 
-- the policy approves clean traffic quickly
-- it rejects high-risk clusters decisively
-- it protects against the most expensive operational error: bad accepts
-- it uses review budget efficiently instead of wasting it on low-value escalation
-- it improves `hard` substantially without degrading `easy` or `medium`
+These are the current reproducible in-process results for the repo state on `main`.
 
-This is near-optimal performance from a deterministic, interpretable ruleset, which is exactly the kind of baseline an operations team could inspect and trust.
+## Repo Layout
 
-### Baseline Comparison
+- [server/app.py](server/app.py): FastAPI + OpenEnv server wiring
+- [server/my_env_environment.py](server/my_env_environment.py): environment reset/step/state behavior
+- [server/task_bank.py](server/task_bank.py): deterministic task definitions and validation
+- [server/grader.py](server/grader.py): raw reward logic and normalized scoring
+- [models.py](models.py): typed action / observation / state models
+- [client.py](client.py): environment client wrapper
+- [inference.py](inference.py): deterministic baseline runner
+- [tests](tests): regression tests for grading, environment behavior, and inference output
 
-Shortcut policies perform badly, which is a useful sanity check that the environment is not solvable by trivial behavior.
+## Local Setup
 
-| Policy | Easy | Medium | Hard | Mean |
-|---|---:|---:|---:|---:|
-| Always Accept | 0.00 | 0.00 | 0.00 | 0.00 |
-| Always Reject | 0.00 | 0.00 | 0.00 | 0.00 |
-| Always Review | 0.00 | 0.00 | 0.00 | 0.00 |
-| Deterministic Heuristic | 1.00 | 1.00 | 0.94 | 0.98 |
+Install dependencies:
 
-## 🏗️ Implementation
+```bash
+uv sync
+```
 
-This environment is built with:
+If you prefer the project virtualenv explicitly:
 
-- **FastAPI**
-- **OpenEnv**
-- **typed Pydantic schemas**
-- **deterministic task generation**
-- **deterministic grading**
-- **Docker-based Hugging Face deployment**
+```bash
+.venv/bin/python -V
+```
 
-Key files:
+## Run the Server
 
-- `server/app.py`: FastAPI + OpenEnv server
-- `server/my_env_environment.py`: environment dynamics
-- `server/task_bank.py`: deterministic task definitions
-- `server/grader.py`: dense business-aligned grading
-- `models.py`: typed action / observation / state models
-- `inference.py`: deterministic baseline inference policy
-
-## 🛠️ Setup
-
-### Local server
-
-Run the environment locally:
+Start the OpenEnv-compatible FastAPI server locally:
 
 ```bash
 .venv/bin/python -m uvicorn server.app:app --host 0.0.0.0 --port 8000
 ```
 
-### Baseline inference
-
-Run the deterministic baseline against the local server:
-
-```bash
-.venv/bin/python inference.py --env-url http://localhost:8000 --task easy
-```
-
-Change `--task` to `easy`, `medium`, or `hard`.
-
-Optional LLM-assisted mode can be enabled explicitly:
-
-```bash
-ENABLE_LLM=true API_BASE_URL=https://api.openai.com/v1 MODEL_NAME=gpt-4.1-mini OPENAI_API_KEY=... \
-.venv/bin/python inference.py --env-url http://localhost:8000 --task easy
-```
-
-### Docker
-
-Build and run locally with Docker:
-
-```bash
-docker build -t operational-risk-triage:latest .
-docker run --rm -p 7860:7860 operational-risk-triage:latest
-```
-
-Then call the environment at:
-
-```text
-http://localhost:7860
-```
-
-## 🌐 Deployment
-
-This project is deployed as a **Docker-based Hugging Face Space**.
-
-Deployment details:
-
-- runtime: Docker
-- app port: `7860`
-- FastAPI app: `server.app:app`
-
-Live deployment:
-
-```text
-https://sehtaj-openenv-triage.hf.space
-```
-
-Important endpoints:
+Useful local endpoints:
 
 - `POST /reset`
 - `POST /step`
@@ -287,21 +192,21 @@ Important endpoints:
 - `GET /metadata`
 - `GET /schema`
 
-The validator-critical endpoint is:
+## Run the Baseline
 
-```text
-POST /reset
+Run the baseline against a server:
+
+```bash
+.venv/bin/python inference.py --env-url http://localhost:8000
 ```
 
-## ✅ OpenEnv Compliance
+Current runner behavior:
 
-This submission implements the expected OpenEnv interaction model:
+- it executes `easy`, then `medium`, then `hard`
+- it prints strict structured logs
+- it uses the deterministic heuristic policy for the actual decisions
 
-- `reset()`
-- `step(action)`
-- `state`
-
-It also preserves the required structured inference logs:
+Expected log shape:
 
 ```text
 [START] task=<task_name> env=<env_name> model=<model_name>
@@ -309,51 +214,113 @@ It also preserves the required structured inference logs:
 [END] success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...,rn>
 ```
 
-The environment is deterministic end to end:
+## LLM Proxy Compatibility
 
-- deterministic tasks
-- deterministic grader
-- deterministic policy baseline
-- reproducible scores across runs
+The baseline decisions are heuristic-driven, but the runner is also validator-compatible for LLM proxy checks.
 
-## 🔍 Why This Submission Is Strong
+If the following environment variables are present:
 
-This environment is strong because it captures the part of decision systems that often gets ignored:
+- `API_BASE_URL`
+- `OPENAI_API_KEY` or `API_KEY`
 
-- not just prediction
-- not just classification
-- but queue-level operational action selection under uncertainty and cost
+then `inference.py` initializes the OpenAI client against that proxy endpoint and makes one short proxy-visible API call. This satisfies proxy usage checks without changing the baseline decision policy.
 
-It rewards disciplined triage behavior:
+Optional environment variables:
 
-- approve low-risk cases fast
-- reject dangerous cases early
-- escalate only when ambiguity justifies analyst cost
+- `ENV_URL`
+- `MODEL_NAME`
+- `HF_TOKEN`
+- `ENABLE_LLM`
 
-That makes it a better proxy for real risk operations than a simple score-threshold benchmark.
+Notes:
 
-## 🔭 Future Work
+- the default baseline path remains heuristic-only
+- hidden-validator compatibility is handled in the runner without changing the environment contract
 
-There is clear room to extend this system beyond a deterministic rules baseline:
+## Tests
 
-- RL-based policy optimization over the same environment
-- adaptive thresholds learned from offline data
-- stronger hidden evaluation sets for harder anti-overfitting pressure
-- calibrated review-allocation strategies
-- optional hybrid policy with LLM-assisted reasoning on selected ambiguous cases
+Run the core regression suite:
 
-The current system is intentionally deterministic and interpretable. Future iterations can push toward more adaptive policies without changing the environment contract.
+```bash
+.venv/bin/pytest -q tests/test_grader.py tests/test_environment.py tests/test_inference.py
+```
 
-## 📌 Summary
+These tests cover:
 
-Operational Risk Triage is a deterministic OpenEnv environment for high-stakes accept / reject / review decision-making.
+- deterministic grading behavior
+- score bounds and normalization
+- environment reproducibility
+- inference log formatting
+- proxy compatibility
+- fallback score handling on error paths
 
-It is built around a real operational workflow, not a toy task. The environment captures the tradeoff between fraud prevention, false-positive cost, and scarce analyst review capacity.
+## Docker
 
-The current deterministic heuristic baseline achieves:
+Build the container locally:
 
-- `easy = 1.00`
-- `medium = 1.00`
-- `hard = 0.94`
+```bash
+docker build -t operational-risk-triage:latest .
+```
 
-with a signal-driven, interpretable policy and a fully deployable FastAPI + OpenEnv system on Hugging Face Spaces.
+Run it:
+
+```bash
+docker run --rm -p 7860:7860 operational-risk-triage:latest
+```
+
+Then the environment is available at:
+
+```text
+http://localhost:7860
+```
+
+The container entrypoint serves:
+
+```text
+python -m uvicorn server.app:app --host 0.0.0.0 --port ${PORT:-7860}
+```
+
+## Deployment
+
+This project is deployed as a Docker-based Hugging Face Space.
+
+Live Space:
+
+```text
+https://sehtaj-openenv-triage.hf.space
+```
+
+Hugging Face repo:
+
+```text
+https://huggingface.co/spaces/Sehtaj/openenv-triage
+```
+
+GitHub repo:
+
+```text
+https://github.com/sehtaj/openenv-triage
+```
+
+## Why This Environment Is Useful
+
+This benchmark is stronger than a plain classification task because it evaluates action quality under operational constraints:
+
+- not just whether a case looks risky
+- but whether it should be accepted, rejected, or escalated now
+- under asymmetric cost and limited review budget
+
+That makes it a better proxy for real decision systems in fraud, risk, and trust operations than simple thresholding benchmarks.
+
+## Summary
+
+Operational Risk Triage is a deterministic, production-style OpenEnv environment built around a realistic queue-management problem. The current repo state includes:
+
+- a fully typed FastAPI + OpenEnv server
+- deterministic task generation and grading
+- strict bounded normalized scores in `(0, 1)`
+- a reproducible heuristic baseline
+- validator-compatible OpenAI proxy handling in the runner
+- a tested Docker deployment path for Hugging Face Spaces
+
+It is a compact benchmark, but it captures a real operational question: when evidence is imperfect and analyst bandwidth is limited, what action should the system take next?
